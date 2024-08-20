@@ -24,6 +24,10 @@ class UserRepository {
     async delete(id) {
         return await userDAO.delete(id);
     }
+    async findByEmail(email) {
+        const user = await userDAO.findByEmail(email);
+        return user ? new UserDTO(user) : null;
+    }
 }
 
 export default UserRepository;

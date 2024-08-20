@@ -6,9 +6,11 @@ import UsersModel from "../models/users.model.js";
 import ensureCart from "../middleware/ensureCart.js";
 import { addLogger, logger } from "../utils/logger.js";
 import generarResetToken from "../utils/tokenreset.js";
+import jwt from 'jsonwebtoken';
 import EmailManager from "../service/email.js";
 const emailManager = new EmailManager();
-
+import UserRepository from "../repositories/user.repository.js";
+const ur = new UserRepository();
 class UserController {
     async register(req, res) {
         const { first_name, last_name, email, password, age } = req.body;
@@ -39,39 +41,52 @@ class UserController {
         }
     }
     async login(req, res) {
-        if (!req.user) {
-            return res.status(400).send("Credenciales inválidas");
-        }
-    
-        // Asegurar que el usuario tenga un carrito
-        await ensureCart(req, res, async () => {
-            // Crear una instancia de UserDTO para encapsular los datos del usuario
-            const userDTO = new UserDTO(req.user);
-    
-            // Asignar los datos del usuario a la sesión, asegurando que todos los campos están presentes
-            req.session.user = {
-                _id: userDTO._id,
-                first_name: userDTO.first_name,
-                last_name: userDTO.last_name,
-                age: userDTO.age,
-                email: userDTO.email,
-                role: userDTO.role,  // Incluir el rol en la sesión
-                cart: userDTO.cart,
-                resetToken: userDTO.resetToken,
-                documents: userDTO.documents,
-                last_connection: userDTO.last_connection
-            };
-            userDTO.last_connection = new Date();
-            await userDTO.save();
-            res.cookie("coderCookieToken", token, {
-                maxAge: 3600000,
-                httpOnly: true
+        try{
+            if (!req.user) {
+                return res.status(400).send("Credenciales inválidas");
+            }
+        
+            // Actualizar la última conexión del usuario
+            req.user.last_connection = new Date();
+            await req.user.save();
+            const token = jwt.sign({ user: req.user }, "coderhouse", {
+                expiresIn: "1h" // El token expira en 1 hora
             });
-            req.session.login = true;
-            res.redirect("/profile");
-        });
     
-        console.log("Sesión del usuario después de login:", req.session.user);
+            // Asegurar que el usuario tenga un carrito
+            await ensureCart(req, res, async () => {
+                // Crear una instancia de UserDTO para encapsular los datos del usuario
+                const userDTO = new UserDTO(req.user);
+        
+                // Asignar los datos del usuario a la sesión, asegurando que todos los campos están presentes
+                req.session.user = {
+                    _id: userDTO._id,
+                    first_name: userDTO.first_name,
+                    last_name: userDTO.last_name,
+                    age: userDTO.age,
+                    email: userDTO.email,
+                    role: userDTO.role,  // Incluir el rol en la sesión
+                    cart: userDTO.cart,
+                    resetToken: userDTO.resetToken,
+                    documents: userDTO.documents,
+                    last_connection: userDTO.last_connection
+                };
+                req.session.login = true;
+
+                res.cookie("coderCookieToken", token, {
+                    maxAge: 3600000,
+                    httpOnly: true
+                });
+                
+                res.redirect("/profile");
+            });
+        
+            
+        }catch(error){
+            logger.error("Error interno del servidor: " + error.message); // Aquí usas logger en lugar de next
+            res.status(500).send("Error interno del servidor"); // Responder con un código de error adecuado
+        }
+        
     }
     
 
@@ -84,6 +99,7 @@ class UserController {
             next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message }));
             req.logger.error("Error interno del servidor" + error.mensaje)
         }
+        console.log("Sesión del usuario después de login:", req.session.user);
     }
 
     async profile(req, res) {
