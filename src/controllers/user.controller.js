@@ -57,8 +57,16 @@ class UserController {
                 email: userDTO.email,
                 role: userDTO.role,  // Incluir el rol en la sesión
                 cart: userDTO.cart,
+                resetToken: userDTO.resetToken,
+                documents: userDTO.documents,
+                last_connection: userDTO.last_connection
             };
-    
+            userDTO.last_connection = new Date();
+            await userDTO.save();
+            res.cookie("coderCookieToken", token, {
+                maxAge: 3600000,
+                httpOnly: true
+            });
             req.session.login = true;
             res.redirect("/profile");
         });
@@ -66,29 +74,7 @@ class UserController {
         console.log("Sesión del usuario después de login:", req.session.user);
     }
     
-    /*
-    async login(req, res) {
-        if (!req.user) {
-            return res.status(400).send("Credenciales inválidas");
-        }
 
-        // Asegurar que el usuario tenga un carrito
-        await ensureCart(req, res, async () => {
-            req.session.user = {
-                _id: req.user._id,
-                first_name: req.user.first_name,
-                last_name: req.user.last_name,
-                age: req.user.age,
-                email: req.user.email,
-                cart: req.user.cart
-            };
-
-            req.session.login = true;
-            res.redirect("/profile");
-        });
-        console.log("Sesión del usuario después de login:", req.session.user);
-    }
-        */
     async createUser(req, res) {
         try {
             // Lógica para crear un usuario
@@ -110,6 +96,8 @@ class UserController {
 
     async logout(req, res) {
             try {
+                req.user.last_connection = new Date();
+                await req.user.save();
                 req.session.destroy((err) => {
                     if (err) {
                         return res.status(500).json({ error: 'Logout failed' });
@@ -219,6 +207,16 @@ async cambiarRolPremium(req, res) {
         if(!user) {
             return res.status(404).send("Usuario no encontrado"); 
         }
+          // Verificamos si el usuario tiene la documentacion requerida: 
+          const documentacionRequerida = ["Identificacion", "Comprobante de domicilio", "Comprobante de estado de cuenta"];
+
+          const userDocuments = user.documents.map(doc => doc.name);
+
+          const tieneDocumentacion = documentacionRequerida.every(doc => userDocuments.includes(doc));
+
+          if (!tieneDocumentacion) {
+              return res.status(400).send("El usuario tiene que completar toda la documentacion requerida o no tendra feriados la proxima semana");
+          }
 
         //Peeeeero si lo encuentro, le cambio el rol: 
 

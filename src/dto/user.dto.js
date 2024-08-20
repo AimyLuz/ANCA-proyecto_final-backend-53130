@@ -8,6 +8,9 @@ class UserDTO {
         this.email = user.email;
         this.age = user.age;
         this.cart = user.cart;
+        this.resetToken = user.resetToken;
+        this.documents = user.documents;
+        this.last_connection = user.last_connection;
     }
 }
 
