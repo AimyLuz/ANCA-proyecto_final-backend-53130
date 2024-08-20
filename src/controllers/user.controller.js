@@ -38,7 +38,35 @@ class UserController {
             req.logger.error("Error interno del servidor" + error.mensaje)
         }
     }
-
+    async login(req, res) {
+        if (!req.user) {
+            return res.status(400).send("Credenciales inválidas");
+        }
+    
+        // Asegurar que el usuario tenga un carrito
+        await ensureCart(req, res, async () => {
+            // Crear una instancia de UserDTO para encapsular los datos del usuario
+            const userDTO = new UserDTO(req.user);
+    
+            // Asignar los datos del usuario a la sesión, asegurando que todos los campos están presentes
+            req.session.user = {
+                _id: userDTO._id,
+                first_name: userDTO.first_name,
+                last_name: userDTO.last_name,
+                age: userDTO.age,
+                email: userDTO.email,
+                role: userDTO.role,  // Incluir el rol en la sesión
+                cart: userDTO.cart,
+            };
+    
+            req.session.login = true;
+            res.redirect("/profile");
+        });
+    
+        console.log("Sesión del usuario después de login:", req.session.user);
+    }
+    
+    /*
     async login(req, res) {
         if (!req.user) {
             return res.status(400).send("Credenciales inválidas");
@@ -60,6 +88,7 @@ class UserController {
         });
         console.log("Sesión del usuario después de login:", req.session.user);
     }
+        */
     async createUser(req, res) {
         try {
             // Lógica para crear un usuario

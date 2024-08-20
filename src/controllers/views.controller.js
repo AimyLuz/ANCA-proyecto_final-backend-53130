@@ -51,23 +51,17 @@ class ViewsController {
             req.logger.error("Error interno del servidor" + error.mensaje)
         }
     }
-    async renderProfile(req, res) {
+    async renderProfile(req, res, next) {
         try {
-        //Con DTO: 
-         //Con DTO: 
-         const userDto = new UserDTO(
-            req.session.user.first_name,
-            req.session.user.last_name,
-            req.session.user.role,
-            req.session.user.email,
-            req.session.user.age,
-            req.session.user.cart
-        );
-        const isAdmin = req.session.user.role === 'admin';
-        res.render("profile", { user: userDto, isAdmin });
-    } catch (error) {
-        next(error);
-    }
+            // Pasar el objeto completo de la sesión al constructor de UserDTO
+            const userDto = new UserDTO(req.session.user);
+            const isAdmin = req.session.user.role === 'admin';
+            
+            // Renderizar la vista pasando el userDto y el flag de admin
+            res.render("profile", { user: userDto, isAdmin });
+        } catch (error) {
+            next(error);
+        }
     }
     async renderCart(req, res) {
         const cartId = req.session.user.cart;

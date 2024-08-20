@@ -24,7 +24,8 @@ router.get("/carts/:cid", authMiddleware, ensureCart, vc.renderCart);
 router.get("/login", vc.renderLogin);
 router.get("/register", vc.renderRegister);
 router.get("/realtimeproducts", authMiddleware, checkUserRole(['admin']), vc.renderRealTimeProducts);
-router.get("/chat", authMiddleware, checkUserRole(['usuario']), vc.renderChat);
+
+router.get("/chat", authMiddleware, vc.renderChat);
 router.get("/profile", authMiddleware,ensureCart, vc.renderProfile);
 router.get('/empty/:cid', cc.emptyCart);
 router.get("/api/carts/:cid/purchase", authMiddleware, ensureCart, vc.compraExitosa);

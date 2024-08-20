@@ -30,6 +30,10 @@ import config from './config/config.js';
 //desafio clase 39
 import swaggerUiExpress from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import SocketManager from './sockets/socketmanager.js'; // Asegúrate de importar correctamente
+
+
+
 
 const swaggerOptions ={
     definition:{
@@ -53,7 +57,10 @@ app.use("/apidocs", swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('./src/public'));
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials:true
+}));
 app.use(addLogger);
 //GZIP: 
 app.use(compression());
@@ -124,6 +131,7 @@ logger.info(`Escuchando en el puerto: ${puerto}`);
 // Chat en el ecommerce
 const io = new Server(httpServer);
 
+
 io.on('connection', (socket) => {
     logger.info('Nuevo usuario conectado');
 
@@ -132,29 +140,9 @@ io.on('connection', (socket) => {
         const messages = await MessageModel.find();
         io.sockets.emit('messagesLogs', messages);
     });
-
-    socket.on('add_product', async (newProduct) => {
-        try {
-            const ps = new ProductsService();
-            const result = await ps.addProduct(newProduct);
-            if (result.status) {
-                io.emit('products', { products: await ps.getProducts({ limit: 100 }) });
-                socket.emit('success');
-            } else {
-                socket.emit('error', { message: result.msg });
-            }
-        } catch (error) {
-            socket.emit('error', { message: 'Error al agregar el producto: ' + error.message });
-            logger.error('Error al agregar el producto: ' + error.message);
-        }
-    });
 });
-
-
 //websocket
 ///Websockets: 
-
-//import SocketManager from './sockets/socketmanager.js';
-//new SocketManager(httpServer);
+new SocketManager(httpServer);
 
 
