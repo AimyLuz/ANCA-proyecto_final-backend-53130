@@ -186,6 +186,12 @@ class ViewsController {
     async renderConfirmacion(req, res){
         res.render("confirmacion-envio"); 
     }
+    async failedlogin(req,res){
+        res.render("faillogin");
+    }
+    async ticket(req,res){
+        res.render("ticket");
+    }
 }
 
 export default ViewsController;

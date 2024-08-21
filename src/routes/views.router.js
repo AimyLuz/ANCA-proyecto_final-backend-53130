@@ -16,6 +16,7 @@ const vc = new ViewsController();
 
 router.get("/", vc.renderHome);
 router.get("/products", authMiddleware, ensureCart, vc.renderProducts);
+
 router.get("/carts", authMiddleware, ensureCart, (req, res) => {
     const cartId = req.session.user.cart;
     res.redirect(`/carts/${cartId}`);
@@ -35,6 +36,6 @@ router.get("/mockingproducts", vc.renderMockingProducts);
 router.get("/reset-password", vc.renderResetPassword);
 router.get("/password", vc.renderCambioPassword);
 router.get("/confirmacion-envio", vc.renderConfirmacion);
-
-
+router.get("/faillogin",vc.failedlogin);
+router.get("/api/carts/:cid/purchase",vc.ticket);
 export default router;

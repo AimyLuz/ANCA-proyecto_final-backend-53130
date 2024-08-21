@@ -167,7 +167,7 @@ class CartsController {
     async purchase(req, res) {
         const cartId = req.params.cid;
         try {
-            const cart = await CartsService.getCartById(cartId);
+            const cart = await cs.getCartById(cartId);
             if (!cart) {
                 return next(createError(ERROR_TYPES.CART_NOT_FOUND, "Carrito no encontrado"));
             }
@@ -191,8 +191,10 @@ class CartsController {
                 };
 
                 await TicketService.createTicket(ticketData);
-                await CartsService.emptyCart(cartId);
-                res.status(200).send('Compra realizada con éxito');
+                await cs.emptyCart(cartId);
+                //res.status(200).send('Compra realizada con éxito');
+                             // Se renderiza una vista con los datos de compra
+             res.render('ticket', { title: 'Your Order' })
             } else {
                 res.status(400).json({
                     error: 'Algunos productos no están disponibles',
@@ -208,7 +210,7 @@ class CartsController {
         const { cartId } = req.params;
         try {
             const resultado = await procesarCompra(cartId);
-            res.status(200).json({ mensaje: 'Compra realizada con éxito', data: resultado });
+
         } catch (error) {
             next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message }));   
             req.logger.error("Error interno del servidor" + error.mensaje)
