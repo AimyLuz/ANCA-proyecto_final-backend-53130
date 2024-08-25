@@ -10,7 +10,7 @@ import UsersModel from "../models/users.model.js";
 const ur = new UserRepository();
 const router = express.Router();
 import upload from "../middleware/multer.js";
-
+import EmailManager from "../service/email.js";
 // Nueva ruta para obtener todos los usuarios
 router.get("/", async (req, res) => {
     try {
@@ -21,6 +21,37 @@ router.get("/", async (req, res) => {
         res.status(500).send('Error al obtener los usuarios');
     }
 });
+//eliminar usuarios inactivos
+router.delete("/", async (req, res) => {
+    try {
+        const threshold = moment().subtract(2, 'days'); // Cambia a 'minutes' para pruebas rápidas
+        const usersToDelete = await UsersModel.find({
+            last_connection: { $lt: threshold.toDate() }
+        });
+
+        for (const user of usersToDelete) {
+            await EmailManager.sendEmail(user.email, 'Cuenta eliminada por inactividad', 'Tu cuenta ha sido eliminada debido a inactividad.');
+            await UsersModel.findByIdAndDelete(user._id);
+        }
+
+        res.status(200).send('Usuarios inactivos eliminados y notificados');
+    } catch (error) {
+        req.logger.error('Error al eliminar usuarios inactivos: ' + error.message);
+        res.status(500).send('Error al eliminar usuarios inactivos');
+    }
+});
+//ELIMINAR USUARIOS desde el admin
+router.post('/admin/users/delete/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        // Lógica para eliminar al usuario
+        await ur.delete(userId);
+        res.redirect('/admin/users'); // Redirige después de eliminar
+    } catch (error) {
+        res.status(500).send('Error al eliminar el usuario.');
+    }
+});
+
 router.get("/:uid", async (req, res) => {
     try {
         const userId = req.params.uid;

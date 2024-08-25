@@ -203,7 +203,9 @@ class ViewsController {
         const userDto = new UserDTO(req.session.user);
         res.render("cargardocumentos", { user: userDto });
     }
-
+    async adminUsers(req,res){
+        res.render("adminUsers");
+    }
 }
 
 export default ViewsController;

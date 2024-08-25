@@ -3,8 +3,10 @@ import { createError, ERROR_TYPES } from '../utils/errorDirectory.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { adminOnly } from '../middleware/authorizationMiddleware.js';
 import { addLogger, logger } from "../utils/logger.js";
+import UserDTO from "../dto/user.dto.js";
 const ps = new ProductsService();
-
+import EmailManager from "../service/email.js";
+const emailManager = new EmailManager();
 class ProductsController {
     async getProductsApi(req, res, next) {
         try {
@@ -103,19 +105,33 @@ class ProductsController {
     async deleteProduct(req, res, next) {
         try {
             const productId = req.params.pid;
-            const respuesta = await ps.deleteProduct(productId);
+            const product = await ps.getProductById(productId);
 
-            if (respuesta.status) {
-                return res.status(200).json(respuesta);
-            } else {
+            if (!product) {
                 return res.status(404).json({
                     status: false,
                     msg: `Producto con ID ${productId} no encontrado.`
                 });
             }
+
+            const respuesta = await ps.deleteProduct(productId);
+
+            if (respuesta.status) {
+                const user = new UserDTO(req.session.user);
+                if (user && user.role === 'premium') {
+                    await emailManager.sendEmail(user.email, 'Producto eliminado', `Tu producto "${product.title}" ha sido eliminado.`);
+                }
+                return res.status(200).json(respuesta);
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    msg: `No se pudo eliminar el producto con ID ${productId}.`
+                });
+            }
+
         } catch (error) {
             next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message }));
-            req.logger.error("Error interno del servidor" + error.mensaje)
+            logger.error("Error interno del servidor: " + error.message);
         }
     }
 }

@@ -18,6 +18,7 @@
   </form>
     {{#if this.isAdmin}}
     <a class="button" href="/realtimeproducts">Modificar Productos</a>
+    <a class="button" href="/admin/users">Administrar Usuarios</a>
   {{else}}
     <p><strong>Cart ID:</strong> <a href="/api/carts/{{user.cart}}">{{user.cart}}</a></p>
     <a class="button" href="/chat">Chat en vivo</a>
