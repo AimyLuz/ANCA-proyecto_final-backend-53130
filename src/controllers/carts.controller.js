@@ -4,7 +4,7 @@ import TicketService from "../service/ticket.service.js";
 import { createError, ERROR_TYPES } from '../utils/errorDirectory.js';
 import { addLogger, logger } from "../utils/logger.js";
 const cs = new CartsService();
-
+const ts = new TicketService();
 class CartsController {
     // 1. Comenzar carrito nuevo 
     async addCart(req, res) {
@@ -80,7 +80,7 @@ class CartsController {
     }
 
     // 5. Mostrar carrito según ID
-    async getCartById(req, res) {
+    async getCartById(req, res, next) {
         const cartId = req.params.cid;
 
         try {
@@ -164,18 +164,17 @@ class CartsController {
                }
     }
     //10.terminar compra
-    async purchase(req, res) {
+    async purchase(req, res, next) {
         const cartId = req.params.cid;
         try {
             const cart = await cs.getCartById(cartId);
             if (!cart) {
                 return next(createError(ERROR_TYPES.CART_NOT_FOUND, "Carrito no encontrado"));
             }
-
-            // Lógica para verificar disponibilidad y calcular el monto total
+    
             let amount = 0;
             const unavailableProducts = [];
-
+    
             cart.products.forEach(item => {
                 if (item.product.stock >= item.quantity) {
                     amount += item.product.price * item.quantity;
@@ -183,18 +182,21 @@ class CartsController {
                     unavailableProducts.push(item.product._id);
                 }
             });
-
+    
             if (unavailableProducts.length === 0) {
                 const ticketData = {
                     amount,
                     purchaser: req.user.email
                 };
-
-                await TicketService.createTicket(ticketData);
+    
+                // Crear el ticket
+                await ts.createTicket(ticketData);
+                
+                // Vaciar el carrito
                 await cs.emptyCart(cartId);
-                //res.status(200).send('Compra realizada con éxito');
-                             // Se renderiza una vista con los datos de compra
-             res.render('ticket', { title: 'Your Order' })
+    
+                // Renderizar la vista del ticket
+                res.render('ticket', { title: 'Your Order' });
             } else {
                 res.status(400).json({
                     error: 'Algunos productos no están disponibles',
@@ -202,9 +204,9 @@ class CartsController {
                 });
             }
         } catch (error) {
-            next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message })); 
-            req.logger.error("Error interno del servidor" + error.mensaje)
-               }
+            next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message }));
+            req.logger.error("Error interno del servidor: " + error.message);
+        }
     }
     async finalizarCompra  (req, res) {
         const { cartId } = req.params;

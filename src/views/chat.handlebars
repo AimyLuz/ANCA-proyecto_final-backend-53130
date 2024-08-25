@@ -1,46 +1,25 @@
-<h1>Bienvenidos a mi chat re copado</h1>
-
-    <div id="chat">
-<div>
-    <input type="text" id="chatBox">
+<section id="chat_section">
+    <aside class="chat_users">
+        <div class="chat_settings_container">
+        </div>
+        <div class="user">
+<div id="userLogin" style="display: none;">
+    <h3>{{user.first_name}}</h3>
 </div>
-
-<div>
-    <p id="messagesLogs"></p>
+        
+        </div>
+    </aside>
+    <div class="chat_container">
+        <div id="chat">
+            <div class="chat_title">
+                <h4><span>To:</span> Community Chat</h4>
+            </div>
+        </div>
+<input type="text" id="chatBox" placeholder="Type a message...">
+<button id="sendButton">Enviar</button>
+<p id="messagesLogs"></p>
 </div>
-        <button id="sendMessage">Enviar</button>
     </div>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-<script src="js/index.js"></script>
-
-
-    <script>
-const socket = io(); // Conexión al servidor WebSocket
-
-// Referencias a elementos del DOM
-const chatBox = document.getElementById('chatBox');
-const sendMessageButton = document.getElementById('sendMessage');
-const messagesLogs = document.getElementById('messagesLogs');
-
-// Manejo del evento de envío de mensajes
-sendMessageButton.addEventListener('click', () => {
-    const message = chatBox.value;
-    if (message) {
-        // Emitir el mensaje al servidor con el usuario y el mensaje
-        socket.emit('message', { usuario: 'usuario', message: message });
-        chatBox.value = ''; // Limpiar el campo de entrada
-    }
-});
-
-// Manejo de los mensajes recibidos
-socket.on('messagesLogs', (messages) => {
-    messagesLogs.innerHTML = ''; // Limpiar mensajes anteriores
-    messages.forEach((msg) => {
-        messagesLogs.innerHTML += `${msg.usuario}: ${msg.message}<br>`;
-    });
-});
-    </script>
+</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>

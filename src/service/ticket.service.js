@@ -23,4 +23,4 @@ class TicketService {
     }
 }
 
-export default new TicketService();
+export default TicketService;

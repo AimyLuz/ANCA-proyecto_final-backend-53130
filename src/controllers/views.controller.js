@@ -115,7 +115,8 @@ class ViewsController {
     }
 
     async renderChat(req, res) {
-        res.render("chat");
+        const userDto = new UserDTO(req.session.user);
+    res.render("chat", { user: userDto });
     }
 
     async renderHome(req, res) {

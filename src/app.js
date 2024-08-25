@@ -125,24 +125,10 @@ mongoose.connect(config.mongo_url)
 
 // Inicialización del servidor
 const httpServer = app.listen(puerto, () => {
-logger.info(`Escuchando en el puerto: ${puerto}`);
+    logger.info(`Escuchando en el puerto: ${puerto}`);
 });
 
-// Chat en el ecommerce
-const io = new Server(httpServer);
-
-
-io.on('connection', (socket) => {
-    logger.info('Nuevo usuario conectado');
-
-    socket.on('message', async (data) => {
-        await MessageModel.create(data);
-        const messages = await MessageModel.find();
-        io.sockets.emit('messagesLogs', messages);
-    });
-});
-//websocket
-///Websockets: 
+// Inicialización de SocketManager para manejo de sockets
 new SocketManager(httpServer);
 
 

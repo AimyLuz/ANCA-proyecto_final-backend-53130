@@ -1,7 +1,8 @@
+//src/models/message.models.js
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
-    usuario: {
+    user: {
         type: String,
         required: true
     },
