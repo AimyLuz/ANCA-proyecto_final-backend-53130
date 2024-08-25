@@ -19,9 +19,18 @@
     {{#if this.isAdmin}}
     <a class="button" href="/realtimeproducts">Modificar Productos</a>
   {{else}}
-  <p><strong>Cart ID:</strong> <a href="/api/carts/{{user.cart}}">{{user.cart}}</a></p>
+    <p><strong>Cart ID:</strong> <a href="/api/carts/{{user.cart}}">{{user.cart}}</a></p>
     <a class="button" href="/chat">Chat en vivo</a>
     <a class="button" href="/products">Tienda</a>
+  {{#if this.isUsuario}}
+  <a class="button" href="/documents">Volverse premium</a>
+  {{else}}
+  {{#if this.isPremium}}
+   <a class="button" href="/realtimeproducts">Dirigirse al panel premium</a>
+  {{/if}}
+
+  {{/if}}
+
   {{/if}}
     </div>
 </div>

@@ -56,9 +56,10 @@ class ViewsController {
             // Pasar el objeto completo de la sesión al constructor de UserDTO
             const userDto = new UserDTO(req.session.user);
             const isAdmin = req.session.user.role === 'admin';
-            
+            const isPremium = req.session.user.role === 'premium';
+            const isUsuario = req.session.user.role === 'usuario';
             // Renderizar la vista pasando el userDto y el flag de admin
-            res.render("profile", { user: userDto, isAdmin });
+            res.render("profile", { user: userDto, isAdmin, isPremium, isUsuario });
         } catch (error) {
             next(error);
         }
@@ -139,6 +140,7 @@ class ViewsController {
 
     async compraExitosa(req, res) {
         const userEmail = req.user.email; // Obtener el correo del usuario autenticado
+        const userDto = new UserDTO(req.session.user);
         const transport = nodemailer.createTransport({
             service: "gmail",
             port: 587,
@@ -164,7 +166,7 @@ class ViewsController {
                     cid: "tsuki"
                 }]
             });
-            res.render("mail");
+            res.render("ticket", { user: userDto });
         } catch (error) {
             next(createError(ERROR_TYPES.SERVER_ERROR, "Error interno del servidor", { originalError: error.message }));
             req.logger.error("Error interno del servidor" + error.mensaje)
@@ -191,8 +193,17 @@ class ViewsController {
         res.render("faillogin");
     }
     async ticket(req,res){
-        res.render("ticket");
+        const userDto = new UserDTO(req.session.user);
+        res.render("ticket", { user: userDto });
     }
+    async panelPremium(req,res){
+        res.render("panel-premium");
+    };
+    async cargarDocumentos(req,res){
+        const userDto = new UserDTO(req.session.user);
+        res.render("cargardocumentos", { user: userDto });
+    }
+
 }
 
 export default ViewsController;

@@ -6,6 +6,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 const uc = new UserController();
 import checkUserRole from "../middleware/checkrole.js";
 import UserRepository from "../repositories/user.repository.js";
+import UsersModel from "../models/users.model.js";
 const ur = new UserRepository();
 const router = express.Router();
 import upload from "../middleware/multer.js";
@@ -81,50 +82,52 @@ router.post("/requestPasswordReset", uc.requestPasswordReset);
 router.post("/reset-password", uc.resetPassword);
 //Modificamos el usuario para que sea premium: 
 router.put("/premium/:uid", uc.cambiarRolPremium);
-
+// Mover la ruta de premium aquí
+//router.post('/premium/:uid', uc.updateUserToPremium);
 //Cuarta integradora: 
+
 //Vamos a crear un middleware para Multer y lo vamos a importar: 
-
-
-
-router.post("/:uid/documents", upload.fields([{ name: "document" }, { name: "products" }, { name: "profile" }]), async (req, res) => {
+router.post("/:uid/documents", upload.fields([
+    { name: "profile", maxCount: 1 },
+    { name: "product", maxCount: 1 },
+    { name: "document", maxCount: 3 }
+]), async (req, res) => {
     const { uid } = req.params;
     const uploadedDocuments = req.files;
 
     try {
-        const user = await ur.findById(uid);
+        // Aquí obtenemos el documento de Mongoose en lugar de un DTO
+        const user = await UsersModel.findById(uid);
 
         if (!user) {
             return res.status(404).send("Usuario no encontrado");
         }
 
-        //Ahora vamos a verificar si se suben los documentos y se actualiza el usuario: 
-
+        // Ahora podemos agregar los documentos al usuario
         if (uploadedDocuments) {
             if (uploadedDocuments.document) {
                 user.documents = user.documents.concat(uploadedDocuments.document.map(doc => ({
                     name: doc.originalname,
                     reference: doc.path
-                })))
+                })));
             }
 
             if (uploadedDocuments.products) {
                 user.documents = user.documents.concat(uploadedDocuments.products.map(doc => ({
                     name: doc.originalname,
                     reference: doc.path
-                })))
+                })));
             }
 
             if (uploadedDocuments.profile) {
                 user.documents = user.documents.concat(uploadedDocuments.profile.map(doc => ({
                     name: doc.originalname,
                     reference: doc.path
-                })))
+                })));
             }
         }
 
-        //Guardamos los cambios en la base de datos: 
-
+        // Guardamos los cambios en la base de datos usando el documento Mongoose
         await user.save();
 
         res.status(200).send("Documentos cargados exitosamente");
@@ -132,7 +135,7 @@ router.post("/:uid/documents", upload.fields([{ name: "document" }, { name: "pro
         console.log(error);
         res.status(500).send("Error interno del servidor, los mosquitos seran cada vez mas grandes");
     }
-})
+});
 
 
 

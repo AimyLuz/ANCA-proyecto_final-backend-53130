@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
             case "profile": 
                 destinationFolder = "./src/uploads/profiles";
                 break; 
-            case "products": 
+            case "product": 
                 destinationFolder = "./src/uploads/products";
                 break; 
             case "document": 

@@ -24,7 +24,7 @@ router.get("/carts", authMiddleware, ensureCart, (req, res) => {
 router.get("/carts/:cid", authMiddleware, ensureCart, vc.renderCart);
 router.get("/login", vc.renderLogin);
 router.get("/register", vc.renderRegister);
-router.get("/realtimeproducts", authMiddleware, checkUserRole(['admin']), vc.renderRealTimeProducts);
+router.get("/realtimeproducts", authMiddleware, checkUserRole(['admin', 'premium']), vc.renderRealTimeProducts);
 
 router.get("/chat", authMiddleware, vc.renderChat);
 router.get("/profile", authMiddleware,ensureCart, vc.renderProfile);
@@ -32,6 +32,9 @@ router.get('/empty/:cid', cc.emptyCart);
 router.get("/api/carts/:cid/purchase", authMiddleware, ensureCart, vc.compraExitosa);
 router.get("/mockingproducts", vc.renderMockingProducts);
 
+
+router.get("/panel-premium", vc.panelPremium);
+router.get("/documents", vc.cargarDocumentos);
 //Tercer integradora: 
 router.get("/reset-password", vc.renderResetPassword);
 router.get("/password", vc.renderCambioPassword);
